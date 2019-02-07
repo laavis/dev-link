@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const chalk = require('chalk');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 
 const users = require('./routes/api/users');
 const profile = require('./routes/api/profile');
@@ -13,6 +14,12 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Passport middleware
+app.use(passport.initialize());
+
+// Passport config
+require('./config/passport')(passport);
+
 // Database config
 const db = require('./config/keys').mongoURI;
 
@@ -23,8 +30,6 @@ mongoose
   .catch(err => console.error(chalk.red(err)));
 
 const port = process.env.port || 5000;
-
-app.get('/', (req, res) => res.send('Hello'));
 
 // Use Routes
 app.use('/api/users', users);
