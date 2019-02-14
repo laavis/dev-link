@@ -3,7 +3,6 @@ const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
-const chalk = require('chalk');
 
 const router = express.Router();
 
@@ -24,21 +23,23 @@ router.get('/test', (req, res) => res.json({ msg: 'Users Works' }));
 // @route   POST api/users/register
 // @desc    Register new user
 // @access  Public
-router.post('/register', (req, res) => {
-  const { errors, isValid } = validateRegisterInput(req.body);
+router.post('/register', async (req, res, next) => {
+  try {
+    const { errors, isValid } = validateRegisterInput(req.body);
 
-  // Check validation
-  if (!isValid) {
-    return res.status(400).json(errors);
-  }
+    // Check validation
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
 
-  User.findOne({ email: req.body.email }).then(user => {
+    const user = await User.findOne({ email: req.body.email }).exec();
+    console.log('here');
     // Check if user already exists
     if (user) return res.status(400).json({ email: 'Email already exists' });
     // Create new user
     const avatar = gravatar.url(req.body.email, {
       s: 200, // Size
-      r: 'pg', // Rating (no naughty avatars)
+      r: 'pg', // Rating (no naughty avatars ;))
       d: 'mm' // Default
     });
     const newUser = new User({
@@ -49,56 +50,56 @@ router.post('/register', (req, res) => {
     });
 
     // Hash user password
-    bcrypt.genSalt(10, (err, salt) => {
-      bcrypt.hash(newUser.password, salt, (err, hash) => {
+    bcrypt.genSalt(10, (_, salt) => {
+      bcrypt.hash(newUser.password, salt, async (err, hash) => {
         if (err) throw err;
         newUser.password = hash;
-        newUser
-          .save()
-          .then(user => res.json(user))
-          .catch(err => console.error(err));
+        newUser.password = hash;
+        const savedUser = await newUser.save();
+        return res.json(savedUser);
       });
     });
-  });
+  } catch (error) {
+    next(error);
+  }
 });
-
 // @route   POST api/users/login
 // @desc    Login user / Returning JWT Token
 // @access  Private
-router.post('/login', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+router.post('/login', async (req, res, next) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
 
-  // Find user by email
-  // Match user email to req.body.user
-  User.findOne({ email })
-    .then(user => {
-      // Check for user
-      if (!user) return res.status(404).json({ email: 'User not found' });
-      // Check password
-      bcrypt.compare(password, user.password).then(isMatch => {
-        if (isMatch) {
-          // User matched
-          const payload = { id: user.id, name: user.name, avatar: user.avatar }; // Create JWT payload
+    // Find user by email
+    // Match user email to req.body.user
+    const savedUser = await User.findOne({ email }).exec();
+    // Check for user
+    if (!savedUser) return res.status(404).json({ email: 'User not found' });
+    // Check password
+    bcrypt.compare(password, savedUser.password).then(isMatch => {
+      if (isMatch) {
+        // User matched
+        const payload = {
+          id: savedUser.id,
+          name: savedUser.name,
+          avatar: savedUser.avatar
+        }; // Create JWT payload
 
-          // Sign token
-          jwt.sign(
-            payload,
-            keys.secretOrKey,
-            { expiresIn: 3600 },
-            (err, token) => {
-              res
-                .json({
-                  success: true,
-                  token: `Bearer ${token}`
-                })
-                .catch(err => console.error(err));
-            }
-          );
-        } else return res.status(400).json({ password: 'Incorrect password' });
-      });
-    })
-    .catch(err => console.error(err));
+        // Sign token
+        jwt.sign(payload, keys.secretOrKey, { expiresIn: 3600 }, (_, token) => {
+          res
+            .json({
+              success: true,
+              token: `Bearer ${token}`
+            })
+            .catch(err => console.error(err));
+        });
+      } else return res.status(400).json({ password: 'Incorrect password' });
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // @route   POST api/users/current
