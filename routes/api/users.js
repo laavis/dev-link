@@ -8,6 +8,7 @@ const router = express.Router();
 
 // Load input validation
 const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
 
 // Load User model
 const User = require('../../models/User');
@@ -33,7 +34,6 @@ router.post('/register', async (req, res, next) => {
     }
 
     const user = await User.findOne({ email: req.body.email }).exec();
-    console.log('here');
     // Check if user already exists
     if (user) return res.status(400).json({ email: 'Email already exists' });
     // Create new user
@@ -68,6 +68,13 @@ router.post('/register', async (req, res, next) => {
 // @access  Private
 router.post('/login', async (req, res, next) => {
   try {
+    const { errors, isValid } = validateLoginInput(req.body);
+
+    // Check validation
+    if (!isValid) {
+      return res.status(400).json(errors);
+    }
+
     const email = req.body.email;
     const password = req.body.password;
 
@@ -75,7 +82,10 @@ router.post('/login', async (req, res, next) => {
     // Match user email to req.body.user
     const savedUser = await User.findOne({ email }).exec();
     // Check for user
-    if (!savedUser) return res.status(404).json({ email: 'User not found' });
+    if (!savedUser) {
+      errors.email = 'User not found';
+      return res.status(404).json(errors);
+    }
     // Check password
     bcrypt.compare(password, savedUser.password).then(isMatch => {
       if (isMatch) {
@@ -95,7 +105,10 @@ router.post('/login', async (req, res, next) => {
             })
             .catch(err => console.error(err));
         });
-      } else return res.status(400).json({ password: 'Incorrect password' });
+      } else {
+        errors.password = 'Incorrect password';
+        return res.status(400).json(errors);
+      }
     });
   } catch (error) {
     next(error);
