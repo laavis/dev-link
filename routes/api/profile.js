@@ -11,7 +11,7 @@ const validateEducationInput = require('../../validation/education');
 // Load Profile model
 const Profile = require('../../models/Profile');
 
-// Load User profile
+// Load User model
 const User = require('../../models/User');
 
 // @route   GET api/profile/test
@@ -259,6 +259,121 @@ router.post(
         .save()
         .then(prof => res.json(prof))
         .catch(err => console.error(err));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+// @route   POST api/profile/experience
+// @desc    Add experience to profile
+// @access  Private
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const { errors, isValid } = validateExperienceInput(req.body);
+
+      // Check validation
+      if (!isValid) {
+        // Return any errors with 400 status
+        return res.status(400).json(errors);
+      }
+
+      const profile = await Profile.findOne({ user: req.user.id }).exec();
+      const newExp = {
+        title: req.body.title,
+        company: req.body.company,
+        location: req.body.location,
+        from: req.body.from,
+        to: req.body.to,
+        current: req.body.current,
+        description: req.body.description
+      };
+      // Add to experience array
+      profile.experience.unshift(newExp);
+      profile
+        .save()
+        .then(prof => res.json(prof))
+        .catch(err => console.error(err));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   POST api/profile/experience/:exp_id
+// @desc    Edit experience from profile
+// @access  Private
+// TODO
+router.post(
+  '/experience/:exp_id',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const profile = await Profile.findOne({ user: req.user.id }).exec();
+
+      // Get remove index
+      const removeIndex = profile.experience
+        .map(item => item.id)
+        .indexOf(req.params.exp_id);
+
+      // Splice out of array
+      profile.experience.splice(removeIndex, 1);
+
+      // Save
+      profile
+        .save()
+        .then(prof => res.json(prof))
+        .catch(err => console.error(err));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   DELETE api/profile/education/:edu_id
+// @desc    Delete education from profile
+// @access  Private
+router.delete(
+  '/education/:exp_id',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const profile = await Profile.findOne({ user: req.user.id }).exec();
+
+      // Get remove index
+      const removeIndex = profile.education
+        .map(item => item.id)
+        .indexOf(req.params.exp_id);
+
+      // Splice out of array
+      profile.education.splice(removeIndex, 1);
+
+      // Save
+      profile
+        .save()
+        .then(prof => res.json(prof))
+        .catch(err => console.error(err));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// @route   DELETE api/profile
+// @desc    Delete user and profile
+// @access  Private
+router.delete(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    try {
+      const profile = await Profile.remove({ user: req.user.id }).exec();
+      if (profile) {
+        User.findByIdAndRemove({ _id: req.user.id }).exec();
+      }
+      res.json({ success: true });
     } catch (error) {
       next(error);
     }
