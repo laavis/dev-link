@@ -106,7 +106,7 @@ router.post('/login', async (req, res, next) => {
             .catch(err => console.error(err));
         });
       } else {
-        errors.password = 'Incorrect password';
+        errors.password = 'Invalid credentials';
         return res.status(400).json(errors);
       }
     });
