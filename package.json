@@ -4,24 +4,26 @@
   "description": "Platform for developers to find gigs and connect with each other",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "server": "nodemon server.js"
+    "start": "node server",
+    "server": "nodemon server",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Sara Suviranta",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.18.3",
-    "chalk": "^2.4.2",
-    "express": "^4.16.4",
+    "config": "^3.2.5",
+    "express": "^4.17.1",
+    "express-validator": "^6.3.1",
     "gravatar": "^1.8.0",
     "jsonwebtoken": "^8.4.0",
     "mongoose": "^5.4.9",
-    "passport": "^0.4.0",
-    "passport-jwt": "^4.0.0",
+    "request": "^2.88.0",
     "validator": "^10.11.0"
   },
   "devDependencies": {
+    "concurrently": "^5.1.0",
     "nodemon": "^1.18.9"
   }
 }

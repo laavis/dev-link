@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const passport = require('passport');
+const passport = 'ey';
 const router = express.Router();
 
 // Load helpers
@@ -27,7 +27,7 @@ router.get('/test', (_, res) => res.json({ msg: 'Profile Works' }));
 // @access  Private
 router.get(
   '/',
-  passport.authenticate('jwt', { session: false }),
+
   errorSafeRequest(async (req, res) => {
     errors = {};
     const profile = await Profile.findOne({ user: req.user.id })
@@ -100,7 +100,6 @@ router.get(
 // @access  Private
 router.post(
   '/',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const { errors, isValid } = validateProfileInput(req.body);
 
@@ -175,7 +174,6 @@ router.post(
 // @access  Private
 router.post(
   '/education',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const { errors, isValid } = validateEducationInput(req.body);
 
@@ -209,7 +207,6 @@ router.post(
 // @access  Private
 router.post(
   '/experience',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const { errors, isValid } = validateExperienceInput(req.body);
 
@@ -244,14 +241,11 @@ router.post(
 // TODO
 router.post(
   '/experience/:exp_id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id }).exec();
 
     // Get remove index
-    const removeIndex = profile.experience
-      .map(item => item.id)
-      .indexOf(req.params.exp_id);
+    const removeIndex = profile.experience.map(item => item.id).indexOf(req.params.exp_id);
 
     // Splice out of array
     profile.experience.splice(removeIndex, 1);
@@ -269,14 +263,11 @@ router.post(
 // @access  Private
 router.delete(
   '/education/:exp_id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id }).exec();
 
     // Get remove index
-    const removeIndex = profile.education
-      .map(item => item.id)
-      .indexOf(req.params.exp_id);
+    const removeIndex = profile.education.map(item => item.id).indexOf(req.params.exp_id);
 
     // Splice out of array
     profile.education.splice(removeIndex, 1);
@@ -294,7 +285,6 @@ router.delete(
 // @access  Private
 router.delete(
   '/',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const profile = await Profile.remove({ user: req.user.id }).exec();
     if (profile) {

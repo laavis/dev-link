@@ -1,41 +1,22 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const chalk = require('chalk');
-const bodyParser = require('body-parser');
-const passport = require('passport');
-
-const users = require('./routes/api/users');
-const profile = require('./routes/api/profile');
-const posts = require('./routes/api/posts');
+const connectDb = require('./config/db');
 
 const app = express();
 
-// Body parser middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// Connect database
+connectDb();
 
-// Passport middleware
-app.use(passport.initialize());
+// Init middleware
+app.use(express.json({ extended: false }));
 
-// Passport config
-require('./config/passport')(passport);
+app.get('/', (req, res) => res.send('API RUNNING'));
 
-// Database config
-const db = require('./config/keys').mongoURI;
-
-// Connect to mongoDB
-mongoose
-  .connect(db, { useNewUrlParser: true })
-  .then(() => console.log(chalk.blue('MongoDB connected')))
-  .catch(err => console.error(chalk.red(err)));
-
-const port = process.env.port || 5000;
+const PORT = process.env.PORT || 5000;
 
 // Use Routes
-app.use('/api/users', users);
-app.use('/api/profile', profile);
-app.use('/api/posts', posts);
+app.use('/api/users', require('./routes/api/users'));
+app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/profile', require('./routes/api/profile'));
+app.use('/api/posts', require('./routes/api/posts'));
 
-app.listen(port, () =>
-  console.log(chalk.blue(`Server started on port ${port}`))
-);
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

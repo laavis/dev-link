@@ -7,9 +7,7 @@ module.exports = function validateRegisterInput(data) {
   data.name = !isEmpty(data.name) ? data.name : '';
   data.email = !isEmpty(data.email) ? data.email : '';
   data.password = !isEmpty(data.password) ? data.password : '';
-  data.confirmPassword = !isEmpty(data.confirmPassword)
-    ? data.confirmPassword
-    : '';
+  data.confirmPassword = !isEmpty(data.confirmPassword) ? data.confirmPassword : '';
 
   if (!Validator.isLength(data.name, { min: 2, max: 64 })) {
     errors.name = 'Name must be between 2 and 64 characters';
@@ -40,7 +38,7 @@ module.exports = function validateRegisterInput(data) {
   }
 
   if (!Validator.equals(data.password, data.confirmPassword)) {
-    errors.confirmPassword = 'Passwords must match';
+    errors.confirmPassword = `${data.password} is not ${data.confirmPassword} Passwords must match`;
   }
 
   return {

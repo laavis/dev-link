@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const passport = require('passport');
+const passport = 'ey';
 const router = express.Router();
 
 // Load helpers
@@ -49,7 +49,6 @@ router.get(
 // @access  Private
 router.post(
   '/',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const { errors, isValid } = validatePostInput(req.body);
     if (!isValid) {
@@ -75,7 +74,6 @@ router.post(
 // @access  Private
 router.delete(
   '/:id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const post = await Post.findOne({
       _id: req.params.id,
@@ -97,7 +95,6 @@ router.delete(
 // @access  Private
 router.post(
   '/like/:id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id }).exec();
     if (profile) {
@@ -107,13 +104,8 @@ router.post(
         return res.json({ success: false, error: 'Post not found' });
       }
 
-      if (
-        post.likes.filter(like => like.user.toString() === req.user.id).length >
-        0
-      ) {
-        return res
-          .status(400)
-          .json({ alreadyLiked: 'User already liked this post' });
+      if (post.likes.filter(like => like.user.toString() === req.user.id).length > 0) {
+        return res.status(400).json({ alreadyLiked: 'User already liked this post' });
       }
 
       // Add user id to likes array
@@ -129,7 +121,6 @@ router.post(
 // @access  Private
 router.post(
   '/unlike/:id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const profile = await Profile.findOne({ user: req.user.id }).exec();
     if (profile) {
@@ -139,19 +130,12 @@ router.post(
         return res.json({ success: false, error: 'Post not found' });
       }
 
-      if (
-        post.likes.filter(like => like.user.toString() === req.user.id)
-          .length === 0
-      ) {
-        return res
-          .status(400)
-          .json({ notLiked: 'You have not yet liked this post' });
+      if (post.likes.filter(like => like.user.toString() === req.user.id).length === 0) {
+        return res.status(400).json({ notLiked: 'You have not yet liked this post' });
       }
 
       // Get remove index
-      const removeIndex = post.likes
-        .map(item => item.user.toString())
-        .indexOf(req.user.id);
+      const removeIndex = post.likes.map(item => item.user.toString()).indexOf(req.user.id);
 
       // Splice out of array
       post.likes.splice(removeIndex, 1);
@@ -166,7 +150,6 @@ router.post(
 // @access  Private
 router.post(
   '/comment/:id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const { errors, isValid } = validatePostInput(req.body);
     if (!isValid) {
@@ -196,18 +179,13 @@ router.post(
 // @access  Private
 router.delete(
   '/comment/:id/:comment_id',
-  passport.authenticate('jwt', { session: false }),
   errorSafeRequest(async (req, res) => {
     const post = await Post.findById(req.params.id);
     // Check if comment exists
     if (
-      post.comments.filter(
-        comment => comment._id.toString() === req.params.comment_id
-      ).length === 0
+      post.comments.filter(comment => comment._id.toString() === req.params.comment_id).length === 0
     ) {
-      return res
-        .status(404)
-        .json({ commentDoesntExists: 'Comment does not exists' });
+      return res.status(404).json({ commentDoesntExists: 'Comment does not exists' });
     }
 
     // Get remove index
