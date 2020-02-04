@@ -8,8 +8,6 @@ const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
 
-const validateLoginInput = require('../../validation/login');
-
 const User = require('../../models/User');
 
 // @route   POST api/users/register
@@ -68,57 +66,5 @@ router.post(
     }
   }
 );
-
-// @route   POST api/users/login
-// @desc    Login user / Returning JWT Token
-// @access  Private
-router.post('/login', async (req, res, next) => {
-  try {
-    const { errors, isValid } = validateLoginInput(req.body);
-
-    // Check validation
-    if (!isValid) {
-      return res.status(400).json(errors);
-    }
-
-    const email = req.body.email;
-    const password = req.body.password;
-
-    // Find user by email
-    // Match user email to req.body.user
-    const savedUser = await User.findOne({ email }).exec();
-    // Check for user
-    if (!savedUser) {
-      errors.email = 'User not found';
-      return res.status(404).json(errors);
-    }
-    // Check password
-    bcrypt.compare(password, savedUser.password).then(isMatch => {
-      if (isMatch) {
-        // User matched
-        const payload = {
-          id: savedUser.id,
-          name: savedUser.name,
-          avatar: savedUser.avatar
-        }; // Create JWT payload
-
-        // Sign token
-        jwt.sign(payload, keys.secretOrKey, { expiresIn: 3600 }, (_, token) => {
-          res
-            .json({
-              success: true,
-              token: `Bearer ${token}`
-            })
-            .catch(err => console.error(err));
-        });
-      } else {
-        errors.password = 'Invalid credentials';
-        return res.status(400).json(errors);
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 module.exports = router;
