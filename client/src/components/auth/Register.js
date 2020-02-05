@@ -1,7 +1,11 @@
 import React, { Fragment, useState } from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { setAlert } from '../../actions/alert';
+import { register } from '../../actions/auth';
+import PropTypes from 'prop-types';
 
-export default () => {
+const Register = ({ setAlert, register }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,9 +20,9 @@ export default () => {
   const onSubmit = e => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert('passwords must match');
+      setAlert('Passwords do not match', 'danger', 3000);
     } else {
-      console.log('SUCCESS');
+      register({ name, email, password });
     }
   };
 
@@ -36,7 +40,6 @@ export default () => {
             name='name'
             value={name}
             onChange={e => onChange(e)}
-            required
           />
         </div>
         <div className='form-group'>
@@ -46,7 +49,6 @@ export default () => {
             name='email'
             value={email}
             onChange={e => onChange(e)}
-            required
           />
           <small className='form-text'>
             This site uses Gravatar so if you want a profile image, use a Gravatar email
@@ -59,8 +61,6 @@ export default () => {
             name='password'
             value={password}
             onChange={e => onChange(e)}
-            minLength='6'
-            required
           />
         </div>
         <div className='form-group'>
@@ -70,8 +70,6 @@ export default () => {
             name='confirmPassword'
             value={confirmPassword}
             onChange={e => onChange(e)}
-            minLength='6'
-            required
           />
         </div>
         <input type='submit' className='btn btn-primary' value='Register' />
@@ -82,3 +80,10 @@ export default () => {
     </Fragment>
   );
 };
+
+Register.propTypes = {
+  setAlert: PropTypes.func.isRequired,
+  register: PropTypes.func.isRequired
+};
+
+export default connect(null, { setAlert, register })(Register);
