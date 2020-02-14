@@ -1,7 +1,10 @@
 import React, { Fragment, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { login } from '../../actions/auth';
 
-export default () => {
+const Login = ({ login }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -9,11 +12,11 @@ export default () => {
 
   const { email, password } = formData;
 
-  const onChange = e => setFormData({ ...formData, [e.target.email]: e.target.value });
+  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const onSubmit = e => {
     e.preventDefault();
-    console.log('SUCCESS');
+    login({ email, password });
   };
 
   return (
@@ -43,11 +46,10 @@ export default () => {
             name='password'
             value={password}
             onChange={e => onChange(e)}
-            minLength='6'
             required
           />
         </div>
-        <input type='submit' className='btn btn-primary' value='Register' />
+        <input type='submit' className='btn btn-primary' value='Login' />
       </form>
       <p className='my-1'>
         Don't have an account? <Link to='/register'>Sign Up</Link>
@@ -55,3 +57,9 @@ export default () => {
     </Fragment>
   );
 };
+
+Login.propTypes = {
+  login: PropTypes.func.isRequired
+};
+
+export default connect(null, { login })(Login);
